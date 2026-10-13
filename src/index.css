@@ -1,0 +1,103 @@
+:root {
+  --text: #323a31;
+  --background: #f7f2e6;
+  --muted: #675f52;
+  --eyebrow: #786647;
+  --border: #cfc6b5;
+  --badge-border: #d9d0bd;
+  --surface: #fffdf6;
+  --hover: #f4eddd;
+  --selected: #e9efdc;
+  --selected-border: #647c46;
+  --error: #a33424;
+  --hour: #aa492e;
+  --minute: #16786f;
+  --rim: #d6ccb9;
+  --rim-border: #b8ac94;
+  --dial: #fffdf5;
+  --dial-border: #f0e9d9;
+  --tick: #4b493e;
+  --minor-tick: #a8a18f;
+  --hour-number: #333b32;
+  --minute-number: #756d5c;
+  --dial-label: #8b816c;
+  --pin: #454b40;
+  --pin-center: #e6dac0;
+  --focus: #2861b5;
+  --selection: #c4d9ed;
+  font-family: 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  color: var(--text);
+  background: var(--scene-base, var(--background));
+  background-image: var(--scene-wash, none);
+  background-attachment: fixed;
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+:root[data-theme="dark"] {
+  --text: #ecece3;
+  --background: #18201e;
+  --muted: #bdc6bc;
+  --eyebrow: #d0bc94;
+  --border: #647369;
+  --badge-border: #647369;
+  --surface: #27332e;
+  --hover: #35433b;
+  --selected: #394a30;
+  --selected-border: #a2bc84;
+  --error: #ffab9d;
+  --hour: #ffa988;
+  --minute: #70e2c6;
+  --rim: #46534c;
+  --rim-border: #758479;
+  --dial: #232e28;
+  --dial-border: #36453b;
+  --tick: #e4e6d9;
+  --minor-tick: #98a693;
+  --hour-number: #ecece3;
+  --minute-number: #b9c4ad;
+  --dial-label: #b9c4ad;
+  --pin: #b6c2b0;
+  --pin-center: #36453b;
+  --focus: #8dbdff;
+  --selection: #355577;
+  color-scheme: dark;
+}
+:root[data-background="unicorn"], .background-swatch[data-background="unicorn"] {
+  --scene-base: #faf4fb;
+  --scene-wash: radial-gradient(ellipse at 0 100%, #f5dbe880, transparent 50%),
+    radial-gradient(ellipse at 100% 0, #e3dcfa90, transparent 45%),
+    radial-gradient(ellipse at 100% 100%, #d9eee780, transparent 45%),
+    radial-gradient(ellipse at 0 0, #fff1cc80, transparent 40%);
+}
+:root[data-background="space"], .background-swatch[data-background="space"] {
+  --scene-base: #f0f4fa;
+  --scene-wash: radial-gradient(ellipse at 0 100%, #d8def180, transparent 50%),
+    radial-gradient(ellipse at 100% 0, #e5dcf480, transparent 45%),
+    radial-gradient(ellipse at 100% 100%, #d6eaf080, transparent 45%);
+}
+:root[data-theme="dark"][data-background="unicorn"],
+:root[data-theme="dark"] .background-swatch[data-background="unicorn"] {
+  --scene-base: #231f29;
+  --scene-wash: radial-gradient(ellipse at 0 100%, #71405b35, transparent 50%),
+    radial-gradient(ellipse at 100% 0, #5c4b8035, transparent 45%),
+    radial-gradient(ellipse at 100% 100%, #37695830, transparent 45%),
+    radial-gradient(ellipse at 0 0, #76643b25, transparent 40%);
+}
+:root[data-theme="dark"][data-background="space"],
+:root[data-theme="dark"] .background-swatch[data-background="space"] {
+  --scene-base: #192131;
+  --scene-wash: radial-gradient(ellipse at 0 100%, #394d8135, transparent 50%),
+    radial-gradient(ellipse at 100% 0, #67467f30, transparent 45%),
+    radial-gradient(ellipse at 100% 100%, #32637030, transparent 45%);
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 280px; }
+#root { position: relative; z-index: 0; }
+button, input { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+p { margin: 0; }
+::selection { background: var(--selection); }
