@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
-import type { MouseEvent } from 'react'
+import { useCallback, useEffect, useImperativeHandle, useReducer, useRef, useState } from 'react'
+import type { MouseEvent, Ref } from 'react'
 import { AnalogClock, ReadOnlyDigital } from './Clocks'
 import { formatSpokenTime, formatTime } from './clock'
 import { translations } from './i18n'
@@ -11,6 +11,7 @@ import { SentenceChoices, TimeChoices } from './QuizAnswers'
 import { QuizRestartDialog } from './QuizRestartDialog'
 import { useConfetti } from './useConfetti'
 import { readPreference, writePreference } from './preferences'
+import type { TutorialAction } from './useTutorial'
 
 declare global {
   interface Window {
@@ -18,7 +19,14 @@ declare global {
   }
 }
 
-export function Quiz({ visible, language }: { visible: boolean; language: Language }) {
+export type QuizHandle = { hasUnfinishedQuiz: () => boolean; prepareTutorial: () => void }
+
+export function Quiz({ visible, language, ref, onTutorialAction }: {
+  visible: boolean
+  language: Language
+  ref?: Ref<QuizHandle>
+  onTutorialAction?: (action: TutorialAction) => void
+}) {
   const [state, dispatch] = useReducer(quizReducer, initialQuiz, initialState => ({
     ...initialState,
     language,
@@ -39,6 +47,11 @@ export function Quiz({ visible, language }: { visible: boolean; language: Langua
   const steps = question?.wordSteps?.[state.language]
   const completeSentence = state.parts.every(part => part !== null)
   const correctSentence = !!steps && state.parts.every((part, index) => part === steps[index].word)
+
+  useImperativeHandle(ref, () => ({
+    hasUnfinishedQuiz: () => state.view === 'question',
+    prepareTutorial: restart,
+  }))
 
   useEffect(() => {
     dispatch({ type: 'language', language })
@@ -77,6 +90,7 @@ export function Quiz({ visible, language }: { visible: boolean; language: Langua
       ? window.__E2E_QUIZ_QUESTIONS__
       : generateQuestions(state.settings.difficulty)
     dispatch({ type: 'start', questions })
+    onTutorialAction?.('start')
   }
 
   function back() {
@@ -131,7 +145,7 @@ export function Quiz({ visible, language }: { visible: boolean; language: Langua
       {state.view === 'setup' && <p className="intro">{labels.intro}</p>}
     </header>
     <div inert={confirming ? true : undefined}>
-      {state.view === 'setup' && <section className="quiz-setup">
+      {state.view === 'setup' && <section className="quiz-setup" data-tutorial-target="start">
         <fieldset>
           <legend>{labels.difficulty}</legend>
           {(['easy', 'intermediate', 'hard', 'ultra'] as const).map(difficulty =>
@@ -140,11 +154,14 @@ export function Quiz({ visible, language }: { visible: boolean; language: Langua
               {labels[difficulty]}
             </button>)}
         </fieldset>
-        <fieldset>
+        <fieldset data-tutorial-target="modes">
           <legend>{labels.mode}</legend>
           {(['digital', 'analog', 'both'] as const).map(mode =>
             <button type="button" key={mode} aria-pressed={state.settings.mode === mode}
-              onClick={() => dispatch({ type: 'settings', settings: { ...state.settings, mode } })}>
+              onClick={() => {
+                dispatch({ type: 'settings', settings: { ...state.settings, mode } })
+                onTutorialAction?.(mode)
+              }}>
               {labels[mode]}
             </button>)}
         </fieldset>

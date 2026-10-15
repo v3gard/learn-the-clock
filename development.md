@@ -62,6 +62,7 @@ mounted when navigating so their progress and unfinished edits are preserved.
 | Background selection and donation information | `Personalization.tsx`, `Support.tsx` |
 | Shared popover title and close button | `ToolbarPanelHeading.tsx` |
 | Validated localStorage preferences and persistence hook | `preferences.ts` |
+| Hands-on tutorial, spotlight, and localized instructions | `Tutorial.tsx`, `useTutorial.ts`, `tutorialText.ts` |
 
 Screen-specific buttons, flags, and clock details are private components in their
 owning modules. Components are exported only when another module uses them.

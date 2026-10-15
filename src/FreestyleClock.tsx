@@ -7,6 +7,7 @@ import { translations } from './i18n'
 import type { Language } from './i18n'
 import { quizText } from './quizText'
 import { useClockDrag } from './useClockDrag'
+import type { TutorialAction } from './useTutorial'
 
 type TimeFieldProps = {
   name: Field
@@ -23,7 +24,7 @@ function TimeField({ name, value, label, state, dispatch }: TimeFieldProps) {
   function handleBlur(event: FocusEvent<HTMLInputElement>) {
     const target = event.relatedTarget instanceof Element ? event.relatedTarget : null
     // Toolbar actions preserve drafts; competing time controls discard them.
-    if (target?.closest('[data-language-control], [data-navigation-control], [data-personalization-control], [data-support-control]')) return
+    if (target?.closest('[data-language-control], [data-navigation-control], [data-personalization-control], [data-support-control], [data-tutorial-control], [data-tutorial-dialog]')) return
     dispatch({ type: target?.closest('[data-time-control]') ? 'discard' : 'commit' })
   }
 
@@ -54,11 +55,13 @@ type FreestyleClockProps = {
   visible: boolean
   language: Language
   ref?: Ref<FreestyleClockHandle>
+  tutorialHand?: Hand
+  onTutorialAction?: (action: TutorialAction) => void
 }
 
-export function FreestyleClock({ visible, language, ref }: FreestyleClockProps) {
+export function FreestyleClock({ visible, language, ref, tutorialHand, onTutorialAction }: FreestyleClockProps) {
   const [state, dispatch] = useReducer(clockReducer, { time: 13 * 60 + 37, draft: null, error: null })
-  const { face, activeHand, highlightedHand, selectHand, changeTime, endDrag, pointerHandlers } = useClockDrag(state.time, dispatch)
+  const { face, activeHand, highlightedHand, selectHand, changeTime, endDrag, pointerHandlers } = useClockDrag(state.time, dispatch, onTutorialAction, tutorialHand)
   useImperativeHandle(ref, () => ({ endDrag }))
   const { hours, minutes } = formatTime(state.time)
   const text = translations[language]
@@ -85,13 +88,16 @@ export function FreestyleClock({ visible, language, ref }: FreestyleClockProps) 
           <span className="colon" aria-hidden="true">:</span>
           <TimeField name="minutes" value={minutes} label={text.fields.minutes} state={state} dispatch={dispatch} />
         </DigitalFrame>
-        <TimeAdjustments language={language} onAdjust={delta => changeTime({ type: 'add', delta })} />
+        <TimeAdjustments language={language} onAdjust={delta => {
+          changeTime({ type: 'add', delta })
+          onTutorialAction?.(delta === 60 ? 'hour-plus' : delta === -60 ? 'hour-minus' : delta === 1 ? 'minute-plus' : 'minute-minus')
+        }} />
         <p id="input-error" className="input-error" role="alert">{state.error ? text.errors[state.error] : '\u00a0'}</p>
         <div className="inline-controls">{dayControls}</div>
       </section>
       <section className="analog-section" aria-labelledby="analog-title">
         <h2 id="analog-title">{text.analogTitle} <span className="badge">{text.analogBadge}</span></h2>
-        <AnalogClock faceRef={face} time={state.time} highlighted={highlightedHand} dialLabel={text.dialLabel}
+        <AnalogClock data-tutorial-target="hands" faceRef={face} time={state.time} highlighted={tutorialHand ?? highlightedHand} dialLabel={text.dialLabel}
           className={`clock-face ${activeHand ? 'dragging' : ''}`}
           role="group" aria-label={`${text.analogTitle}, ${hours}:${minutes}. ${text.analogDescription}`}
           {...pointerHandlers} />
@@ -152,6 +158,7 @@ function TimeAdjustments({ language, onAdjust }: { language: Language; onAdjust:
     {(['hours', 'minutes'] as const).map(name => <div className={`adjustment ${name}`} key={name}>
       <span>{text.fields[name]}</span>
       <div>{[-1, 1].map(direction => <button key={direction} type="button" data-time-control
+        data-tutorial-target={`${name === 'hours' ? 'hour' : 'minute'}-${direction < 0 ? 'minus' : 'plus'}`}
         aria-label={text.adjustments[name][direction < 0 ? 'subtract' : 'add']}
         onPointerDown={event => event.preventDefault()}
         onClick={() => onAdjust(direction * (name === 'hours' ? 60 : 1))}>

@@ -42,6 +42,21 @@ main { max-width: 1240px; margin: auto; padding: 36px 32px 40px; }
 .quiz-dialog { background: var(--surface); color: inherit; border: 2px solid var(--border); border-radius: 18px; padding: 24px; max-width: 480px; max-height: 80vh; overflow: auto; }
 .confetti-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; }
 .page-actions { position: fixed; top: 12px; right: 12px; z-index: 10; display: flex; gap: 10px; }
+.tutorial-open { padding-bottom: 320px; }
+.tutorial-spotlight { position: fixed; z-index: 30; border: 3px solid var(--focus); border-radius: 16px; box-shadow: 0 0 0 9999px #0009; pointer-events: none; }
+.tutorial-backdrop { position: fixed; inset: 0; z-index: 30; background: #0009; }
+.tutorial-card { position: fixed; z-index: 31; left: 12px; top: 12px; width: min(360px, calc(100vw - 24px)); max-height: calc(100svh - 24px); overflow: auto; padding: 16px; border: 2px solid var(--focus); border-radius: 16px; color: var(--text); background: var(--surface); box-shadow: 0 8px 30px #0004; font-size: .9rem; }
+.tutorial-confirm { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.tutorial-heading { display: flex; align-items: start; justify-content: space-between; gap: 8px; }
+.tutorial-heading h2 { margin: 0; justify-content: start; font-size: 1.1rem; }
+.tutorial-heading button { min-width: 44px; min-height: 44px; font-size: 1.5rem; }
+.tutorial-progress { color: var(--muted); font-size: .8rem; margin: 0 0 8px; }
+.tutorial-buttons { position: sticky; bottom: 0; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; background: var(--surface); }
+.tutorial-buttons button { padding: 8px 12px; flex: 1; }
+.tutorial-modes { padding-left: 20px; margin-top: 8px; }
+.tutorial-modes li + li { margin-top: 6px; }
+.tutorial-success { min-height: 1.3em; margin-top: 8px; font-weight: 650; }
+.tutorial-notice { position: fixed; z-index: 31; bottom: 12px; left: 50%; transform: translateX(-50%); width: min(420px, calc(100vw - 24px)); padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); pointer-events: none; }
 .icon-button { display: inline-flex; align-items: center; justify-content: center; width: 48px; padding: 10px; flex-shrink: 0; }
 .icon-button svg { width: 24px; height: 24px; }
 .language-button svg { width: 28px; }
@@ -218,8 +233,8 @@ button[aria-pressed="true"] { background: var(--selected); border-color: var(--s
 }
 @media (max-width: 760px) and (orientation: portrait) {
   main { max-width: 480px; padding: calc(68px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
-  .page-actions { top: calc(8px + env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); gap: 8px; }
-  .icon-button { width: 48px; min-height: 48px; }
+  .page-actions { top: calc(8px + env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); gap: clamp(2px, 1vw, 8px); }
+  .icon-button { width: clamp(44px, 12vw, 48px); min-height: 48px; }
   header, .quiz header { margin: 0 0 16px; }
   .eyebrow { display: none; }
   h1, .quiz-compact h1 { font-size: clamp(1.6rem, 6vw, 2rem); margin: 0 0 8px; }
