@@ -57,7 +57,7 @@ type FreestyleClockProps = {
 }
 
 export function FreestyleClock({ visible, language, ref }: FreestyleClockProps) {
-  const [state, dispatch] = useReducer(clockReducer, { time: 900, draft: null, error: null })
+  const [state, dispatch] = useReducer(clockReducer, { time: 13 * 60 + 37, draft: null, error: null })
   const { face, activeHand, highlightedHand, selectHand, changeTime, endDrag, pointerHandlers } = useClockDrag(state.time, dispatch)
   useImperativeHandle(ref, () => ({ endDrag }))
   const { hours, minutes } = formatTime(state.time)
