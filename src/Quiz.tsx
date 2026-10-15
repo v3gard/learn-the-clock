@@ -12,6 +12,12 @@ import { QuizRestartDialog } from './QuizRestartDialog'
 import { useConfetti } from './useConfetti'
 import { readPreference, writePreference } from './preferences'
 
+declare global {
+  interface Window {
+    __E2E_QUIZ_QUESTIONS__?: Question[]
+  }
+}
+
 export function Quiz({ visible, language }: { visible: boolean; language: Language }) {
   const [state, dispatch] = useReducer(quizReducer, initialQuiz, initialState => ({
     ...initialState,
@@ -67,7 +73,10 @@ export function Quiz({ visible, language }: { visible: boolean; language: Langua
   }
 
   function start() {
-    dispatch({ type: 'start', questions: generateQuestions(state.settings.difficulty) })
+    const questions = import.meta.env.MODE === 'e2e' && window.__E2E_QUIZ_QUESTIONS__
+      ? window.__E2E_QUIZ_QUESTIONS__
+      : generateQuestions(state.settings.difficulty)
+    dispatch({ type: 'start', questions })
   }
 
   function back() {

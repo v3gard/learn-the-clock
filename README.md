@@ -41,6 +41,26 @@ Production build: `bun run build`. Preview with `bun run preview` at
 
 Checks: `bun run lint` and `bun test`.
 
+### Browser tests
+
+Install Playwright's Chromium browser once, then run the two end-to-end tests:
+
+```sh
+bunx playwright install chromium
+bun run test:e2e
+```
+
+On Linux, use `bunx playwright install --with-deps chromium` to install system
+dependencies too. Playwright starts its own local Vite server on port 4174.
+Use `bun run test:e2e --headed` to watch the tests. Failed tests save screenshots
+and traces in `test-results/`.
+
+The tests complete a ten-question Easy + Digital quiz with a perfect score and
+drag both analog hands to check that the digital time updates. The quiz uses
+fixed whole-hour questions, including midnight, noon, and afternoon times.
+Question injection is enabled only in Vite's dedicated `e2e` mode; normal
+development and production builds always generate their own questions.
+
 ## Code layout
 
 `App.tsx` owns navigation, language, theme, and page tools. Both screens stay
@@ -64,9 +84,16 @@ mounted when navigating so their progress and unfinished edits are preserved.
 Screen-specific buttons, flags, and clock details are private components in their
 owning modules. Components are exported only when another module uses them.
 
-Domain tests live in `tests/clock.test.ts` and `tests/quiz.test.ts`.
+Domain tests live in `tests/`. Playwright tests live in `e2e/` and use
+`.e2e.ts` filenames so `bun test` does not collect them.
 
 ## Deployment
 
 Select **Settings → Pages → Source → GitHub Actions** in the GitHub repository.
 Pushing to `main` builds and deploys automatically.
+Pull requests run the same lint, domain tests, browser tests, and production
+build without deploying. The workflow reports separate `test` and `test:e2e`
+checks, and both must pass before the build and deployment can run.
+The active **Required PR tests** repository ruleset requires both GitHub Actions
+checks before merging into the default branch, including for administrators.
+Existing review and other repository rules remain unchanged.
