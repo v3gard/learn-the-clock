@@ -44,6 +44,7 @@ test('completes all ten quiz questions with a perfect score', async ({ page }) =
 
       await page.getByRole('button', { name: fixture.answer, exact: true }).click()
       await expect(page.getByRole('status')).toHaveText('Correct!')
+      await expect(page.locator('.confetti-canvas')).toHaveCount(1)
       await expect(page.getByText(`Score ${index + 1}/10`, { exact: true })).toBeVisible()
       for (const choice of await choices.all()) {
         await expect(choice).toBeDisabled()
@@ -52,12 +53,70 @@ test('completes all ten quiz questions with a perfect score', async ({ page }) =
         name: index === 9 ? 'See results' : 'Next question',
         exact: true,
       }).click()
+      if (index < 9) await expect(page.locator('.confetti-canvas')).toHaveCount(0)
     })
   }
 
   await expect(page.getByRole('heading', { name: 'Results', exact: true })).toBeVisible()
   await expect(page.getByText('Score 10/10', { exact: true })).toBeVisible()
   await expect(page.getByText('Congratulations! You got every answer right!', { exact: true })).toBeVisible()
+  await expect(page.locator('.confetti-canvas')).toHaveCount(1)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(page.locator('.confetti-canvas')).toHaveCount(0)
+})
+
+test('local confetti renders, resizes, finishes, and respects reduced motion', async ({ page }) => {
+  await page.clock.install()
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.addInitScript(questions => {
+    window.__E2E_QUIZ_QUESTIONS__ = questions
+  }, quizFixture.map(({ question }) => question))
+  await page.goto('#/quiz')
+  await page.getByRole('button', { name: 'Easy', exact: true }).click()
+  await page.getByRole('button', { name: 'Digital', exact: true }).click()
+  await page.getByRole('button', { name: 'Start quiz', exact: true }).click()
+  await page.getByRole('button', { name: quizFixture[0].answer, exact: true }).click()
+
+  const canvas = page.locator('.confetti-canvas')
+  await expect(canvas).toHaveCount(1)
+  await expect(canvas).toHaveAttribute('aria-hidden', 'true')
+  await expect(canvas).toHaveCSS('pointer-events', 'none')
+  await page.clock.runFor(100)
+  expect(await canvas.evaluate(element => {
+    if (!(element instanceof HTMLCanvasElement)) throw new Error('Expected a confetti canvas.')
+    const context = element.getContext('2d')
+    if (!context) throw new Error('Missing confetti drawing context.')
+    return context.getImageData(0, 0, element.width, element.height).data.some(value => value !== 0)
+  })).toBe(true)
+
+  await page.setViewportSize({ width: 900, height: 700 })
+  await expect.poll(() => canvas.evaluate(element => {
+    if (!(element instanceof HTMLCanvasElement)) throw new Error('Expected a confetti canvas.')
+    const ratio = Math.min(devicePixelRatio || 1, 2)
+    return element.width === Math.round(innerWidth * ratio)
+      && element.height === Math.round(innerHeight * ratio)
+  })).toBe(true)
+  await page.clock.runFor(4100)
+  await expect(canvas).toHaveCount(1)
+  await page.clock.runFor(4000)
+  await expect(canvas).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Next question', exact: true }).click()
+  await page.getByRole('button', { name: quizFixture[1].answer, exact: true }).click()
+  await expect(canvas).toHaveCount(1)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(canvas).toHaveCount(0)
+  await page.getByRole('button', { name: 'Next question', exact: true }).click()
+  await page.getByRole('button', { name: quizFixture[2].answer, exact: true }).click()
+  await page.clock.runFor(100)
+  await expect(canvas).toHaveCount(0)
+
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.getByRole('button', { name: 'Next question', exact: true }).click()
+  await page.getByRole('button', { name: quizFixture[3].answer, exact: true }).click()
+  await expect(canvas).toHaveCount(1)
+  await page.goto('#/')
+  await expect(canvas).toHaveCount(0)
 })
 
 test('dragging both clock hands updates the digital time', async ({ page }) => {

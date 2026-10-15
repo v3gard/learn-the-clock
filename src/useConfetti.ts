@@ -1,81 +1,154 @@
-import { useCallback, useRef } from 'react'
-import confetti from 'canvas-confetti'
+import { useCallback, useEffect, useRef } from 'react'
+
+type Particle = {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  rotation: number
+  spin: number
+  age: number
+  lifetime: number
+  color: string
+  round: boolean
+}
+
+const colors = ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d']
 
 export function useConfetti() {
-  const canvas = useRef<HTMLCanvasElement | null>(null)
-  const fire = useRef<ReturnType<typeof confetti.create> | null>(null)
-  const timers = useRef<ReturnType<typeof setInterval>[]>([])
+  const cleanup = useRef<(() => void) | null>(null)
 
   const stopParticles = useCallback(() => {
-    timers.current.forEach(clearInterval)
-    timers.current = []
-    fire.current?.reset()
-    canvas.current?.remove()
-    canvas.current = null
-    fire.current = null
+    cleanup.current?.()
+    cleanup.current = null
   }, [])
 
+  useEffect(() => stopParticles, [stopParticles])
+
   const burst = useCallback((finale = false) => {
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
     stopParticles()
+    const motion = matchMedia('(prefers-reduced-motion: reduce)')
+    if (motion.matches) return
+
     const element = document.createElement('canvas')
+    const drawingContext = element.getContext('2d')
+    if (!drawingContext) throw new Error('Confetti requires a 2D canvas context.')
+    const context = drawingContext
     element.className = 'confetti-canvas'
     element.setAttribute('aria-hidden', 'true')
     document.body.append(element)
-    canvas.current = element
-    fire.current = confetti.create(element, { resize: true, disableForReducedMotion: true })
-    const launch = fire.current
-    const end = performance.now() + 4000
-    const animation = launch({
-      origin: { x: .5, y: .35 },
-      particleCount: finale ? 360 : 120,
-      spread: finale ? 160 : 120,
-      ticks: finale ? 180 : 120,
-    })
 
-    if (finale) {
-      for (const side of [0, 1]) {
-        void launch({
-          origin: { x: side, y: .65 }, angle: side === 0 ? 60 : 120,
-          particleCount: 100, spread: 80, startVelocity: 50, ticks: 180,
-        })
-      }
-      for (let column = 0; column < 3; column++) {
-        void launch({
-          origin: { x: (column + .5) / 3, y: 1 }, particleCount: 60,
-          spread: 100, startVelocity: 30, ticks: 180,
+    let width = 0
+    let height = 0
+    let frame = 0
+    let particles: Particle[] = []
+    const start = performance.now()
+    let previous = start
+    let nextLaunch = start + 80
+
+    function resize() {
+      width = window.innerWidth
+      height = window.innerHeight
+      const ratio = Math.min(window.devicePixelRatio || 1, 2)
+      element.width = Math.round(width * ratio)
+      element.height = Math.round(height * ratio)
+      context.setTransform(ratio, 0, 0, ratio, 0, 0)
+    }
+
+    function launch(x: number, y: number, count: number, spread: number,
+      speed: number, lifetime: number, angle = 90) {
+      for (let index = 0; index < count; index++) {
+        const direction = (angle + (Math.random() - .5) * spread) * Math.PI / 180
+        const velocity = speed * (.5 + Math.random() * .5)
+        particles.push({
+          x: x * width, y: y * height,
+          vx: Math.cos(direction) * velocity,
+          vy: -Math.sin(direction) * velocity,
+          rotation: Math.random() * Math.PI * 2,
+          spin: (Math.random() - .5) * 12,
+          age: 0, lifetime,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          round: Math.random() < .5,
         })
       }
     }
 
-    const timer = setInterval(() => {
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    function onMotionChange() {
+      if (motion.matches) stopParticles()
+    }
+
+    cleanup.current = () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('resize', resize)
+      motion.removeEventListener('change', onMotionChange)
+      element.remove()
+      particles = []
+    }
+    window.addEventListener('resize', resize)
+    motion.addEventListener('change', onMotionChange)
+    resize()
+    launch(.5, .35, finale ? 360 : 120, finale ? 160 : 120, 1350, finale ? 3 : 2)
+
+    if (finale) {
+      for (const side of [0, 1]) {
+        launch(side, .65, 100, 80, 1500, 3, side === 0 ? 60 : 120)
+      }
+      for (let column = 0; column < 3; column++) {
+        launch((column + .5) / 3, 1, 60, 100, 900, 3)
+      }
+    }
+
+    function animate(now: number) {
+      if (motion.matches) {
         stopParticles()
         return
       }
-      if (performance.now() >= end) {
-        clearInterval(timer)
-        timers.current = timers.current.filter(current => current !== timer)
-        return
-      }
-      if (finale) {
-        for (let column = 0; column < 3; column++) {
-          void launch({
-            origin: { x: (column + Math.random()) / 3, y: -.04 }, angle: 270,
-            particleCount: 10, spread: 70, startVelocity: 4, gravity: .8, ticks: 240,
-          })
+      if (now - start < 4000 && now >= nextLaunch) {
+        if (finale) {
+          for (let column = 0; column < 3; column++) {
+            launch((column + Math.random()) / 3, -.04, 10, 70, 120, 4, 270)
+          }
+        } else {
+          launch(Math.random(), 0, 7, 120, 360, 100 / 60)
         }
-      } else {
-        void launch({
-          origin: { x: Math.random(), y: 0 }, particleCount: 7,
-          spread: 120, startVelocity: 12, gravity: 1, ticks: 100,
-        })
+        nextLaunch = now + 80
       }
-    }, 80)
-    timers.current.push(timer)
-    void animation?.then(() => {
-      if (canvas.current === element) stopParticles()
-    })
+
+      const elapsed = (now - previous) / 1000
+      const delta = Math.min(elapsed, .05)
+      previous = now
+      context.clearRect(0, 0, width, height)
+      particles = particles.filter(particle => {
+        particle.age += elapsed
+        if (particle.age >= particle.lifetime) return false
+        const drag = Math.exp(-2.2 * delta)
+        particle.vx *= drag
+        particle.vy = particle.vy * drag + (finale ? 800 : 1000) * delta
+        particle.x += particle.vx * delta
+        particle.y += particle.vy * delta
+        particle.rotation += particle.spin * delta
+
+        context.save()
+        context.translate(particle.x, particle.y)
+        context.rotate(particle.rotation)
+        context.scale(1, Math.cos(particle.age * 12 + particle.spin))
+        context.globalAlpha = Math.min(1, (particle.lifetime - particle.age) * 2)
+        context.fillStyle = particle.color
+        if (particle.round) {
+          context.beginPath()
+          context.ellipse(0, 0, 4, 3, 0, 0, Math.PI * 2)
+          context.fill()
+        } else {
+          context.fillRect(-4, -3, 8, 6)
+        }
+        context.restore()
+        return true
+      })
+
+      if (now - start >= 4000 && particles.length === 0) stopParticles()
+      else frame = requestAnimationFrame(animate)
+    }
+    frame = requestAnimationFrame(animate)
   }, [stopParticles])
 
   return { burst, stopParticles }
