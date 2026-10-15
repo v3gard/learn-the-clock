@@ -69,4 +69,29 @@ Domain tests live in `tests/clock.test.ts` and `tests/quiz.test.ts`.
 ## Deployment
 
 Select **Settings → Pages → Source → GitHub Actions** in the GitHub repository.
-Pushing to `main` builds and deploys automatically.
+Pushing to `main` builds and deploys automatically. A manual **Deploy to GitHub
+Pages** run on `main` with an empty `candidate_sha` also deploys.
+
+### Non-publishing checks
+
+Pull requests run the same frozen dependency install, lint, tests, and production
+build on the exact PR head commit (not GitHub's synthetic merge commit). The build
+job has only read permissions. Pages configuration, artifact upload, and the
+deployment job run **only** for a push or manual run on `main` with no
+`candidate_sha`. PRs and manual runs on any other branch never publish. Check-only
+runs have separate concurrency groups, so they cannot cancel or queue behind a
+live deployment.
+
+For exact-revision validation before merging, manually run this workflow from a
+validation branch and set `candidate_sha` to the candidate's full 40-character
+commit SHA. A nonempty candidate input disables all publishing even when the
+workflow is run from `main`; invalid SHA formats fail before checkout. Leaving
+the input empty on a validation branch checks that branch's commit without
+publishing.
+
+The **Report revisions** step logs the **workflow SHA** (which defines the action
+versions and checks) separately from the **checked-out SHA** (the source and
+dependencies being tested). A candidate checkout does not load that candidate's
+workflow or action versions. To validate an action upgrade on a GitHub runner,
+the workflow on the validation branch must itself contain the upgraded `uses:`
+version; checking out an action-upgrade candidate alone is not sufficient.
