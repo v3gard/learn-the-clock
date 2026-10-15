@@ -15,13 +15,17 @@ concurrency:
 
 jobs:
   tests:
-    name: ${{ matrix.command }}
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        command: [test, 'test:e2e']
+        include:
+          - command: test
+            name: 🧪 test
+          - command: test:e2e
+            name: 🦄 e2e
     steps:
       - name: Check out source
         uses: actions/checkout@v7
@@ -49,6 +53,7 @@ jobs:
           if-no-files-found: ignore
 
   build:
+    name: 🔨 build
     needs: tests
     runs-on: ubuntu-latest
     permissions:
