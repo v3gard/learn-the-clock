@@ -17,6 +17,7 @@ const quizFixture = [
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('learn-the-clock.language', JSON.stringify('en'))
+    localStorage.setItem('learn-the-clock.tutorialDone', 'true')
   })
 })
 

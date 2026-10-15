@@ -3,11 +3,13 @@
 
 Practice analog and digital clocks through freestyle play and quizzes.
 
-**[Play now](https://v3gard.github.io/learn-the-clock/)**
-
 - Norwegian and English, with four quiz difficulty levels.
 - Light/dark mode and three backgrounds.
 - Works on phones and laptops. No account needed.
+
+- [![Click to Play](https://img.shields.io/badge/Click-To_Play-blue)](https://v3gard.github.io/learn-the-clock/)
+
+---
 
 ## Screenshots
 
@@ -19,4 +21,4 @@ Practice analog and digital clocks through freestyle play and quizzes.
 
 See [development.md](development.md) for local setup, tests, code layout, and deployment.
 
-Support more educational games: [Buy me a coffee](https://buymeacoffee.com/v3gard).
+[![BuyMeACoffee](https://raw.githubusercontent.com/pachadotdev/buymeacoffee-badges/main/bmc-donate-yellow.svg)](https://buymeacoffee.com/pacha)
