@@ -1,4 +1,4 @@
-# Learn the Clock
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=32&pause=1000&width=435&lines=Learn+the+clock!)](https://git.io/typing-svg)
 
 Learn analog and digital clocks through freestyle play and quizzes. Norwegian
 and English, four difficulty levels, light/dark mode, and three backgrounds.
