@@ -12,6 +12,7 @@ type Preferences = {
   background: Background
   quizSettings: Settings
   tutorialDone: boolean
+  offlineReadyNotified: boolean
 }
 
 function defaultPreferences(): Preferences {
@@ -24,6 +25,7 @@ function defaultPreferences(): Preferences {
     background: 'current',
     quizSettings: initialQuiz.settings,
     tutorialDone: false,
+    offlineReadyNotified: false,
   }
 }
 
@@ -31,6 +33,7 @@ const validators: { [Key in keyof Preferences]: (value: unknown) => value is Pre
   language: (value): value is Language => value === 'nb' || value === 'en',
   darkMode: (value): value is boolean => typeof value === 'boolean',
   tutorialDone: (value): value is boolean => typeof value === 'boolean',
+  offlineReadyNotified: (value): value is boolean => typeof value === 'boolean',
   background: (value): value is Background => value === 'current' || value === 'unicorn' || value === 'space',
   quizSettings: (value): value is Settings => {
     if (typeof value !== 'object' || value === null) return false
