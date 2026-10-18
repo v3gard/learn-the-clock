@@ -6,6 +6,7 @@ Practice analog and digital clocks through freestyle play and quizzes.
 - Norwegian and English, with four quiz difficulty levels.
 - Light/dark mode and three backgrounds.
 - Works on phones and laptops. No account needed.
+- Installable on your home screen, with offline learning after setup.
 
 - [![Click to Play](https://img.shields.io/badge/Click-To_Play-blue)](https://v3gard.github.io/learn-the-clock/)
 

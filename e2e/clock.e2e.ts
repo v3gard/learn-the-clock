@@ -21,6 +21,12 @@ test.beforeEach(async ({ page }) => {
   })
 })
 
+test('development stays uncached while installation help remains available', async ({ page }) => {
+  await page.goto('./')
+  await expect(page.getByRole('button', { name: 'Install app', exact: true })).toBeVisible()
+  expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0)
+})
+
 test('completes all ten quiz questions with a perfect score', async ({ page }) => {
   await page.addInitScript(questions => {
     window.__E2E_QUIZ_QUESTIONS__ = questions

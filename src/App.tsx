@@ -9,6 +9,7 @@ import type { QuizHandle } from './Quiz'
 import { quizText } from './quizText'
 import { Personalization } from './Personalization'
 import { Support } from './Support'
+import { Pwa } from './Pwa'
 import { usePreference } from './preferences'
 import { Tutorial } from './Tutorial'
 import { useTutorial } from './useTutorial'
@@ -97,6 +98,7 @@ function App() {
       <DarkModeButton language={language} darkMode={darkMode} onToggle={() => setDarkMode(current => !current)} />
       <Personalization language={language} />
       <Support language={language} />
+      <Pwa language={language} />
       <button type="button" className="icon-button" data-tutorial-control
         aria-label={tutorialText[language].help} title={tutorialText[language].help}
         onPointerDown={event => event.preventDefault()} onClick={event => {

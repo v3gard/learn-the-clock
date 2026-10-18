@@ -57,6 +57,12 @@ main { max-width: 1240px; margin: auto; padding: 36px 32px 40px; }
 .tutorial-modes li + li { margin-top: 6px; }
 .tutorial-success { min-height: 1.3em; margin-top: 8px; font-weight: 650; }
 .tutorial-notice { position: fixed; z-index: 31; bottom: 12px; left: 50%; transform: translateX(-50%); width: min(420px, calc(100vw - 24px)); padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); pointer-events: none; }
+.pwa-notice { position: fixed; z-index: 29; bottom: max(12px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: min(440px, calc(100vw - 24px)); max-height: 40svh; overflow: auto; padding: 14px; border: 1px solid var(--border); border-radius: 14px; color: var(--text); background: var(--surface); box-shadow: 0 8px 24px #0002; }
+.pwa-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.pwa-action { padding: 10px 14px; }
+.pwa-action:disabled { opacity: .6; cursor: wait; }
+.pwa-dialog { margin: auto; }
+.pwa-dialog::backdrop { background: #0007; }
 .icon-button { display: inline-flex; align-items: center; justify-content: center; width: 48px; padding: 10px; flex-shrink: 0; }
 .icon-button svg { width: 24px; height: 24px; }
 .language-button svg { width: 28px; }
@@ -153,7 +159,7 @@ button[aria-pressed="true"] { background: var(--selected); border-color: var(--s
   .quiz:not(.quiz-compact) header { margin-top: 44px; margin-bottom: 24px; }
   .quiz:not(.quiz-compact) h1 { font-size: clamp(2rem, 5svh, 3.8rem); }
   .quiz-setup fieldset { margin-bottom: 20px; }
-  .quiz-compact header { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 48px; margin: 0 0 12px; padding-right: 286px; }
+  .quiz-compact header { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 48px; margin: 0 0 12px; padding-right: 402px; }
   .quiz-compact h1 { margin: 0; }
   .quiz-compact .compact-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 24px; min-height: calc(100svh - 100px); align-items: center; }
   .quiz-compact .quiz-clocks { width: 100%; max-width: none; margin: 0; grid-template-columns: minmax(0, 1fr); gap: 12px; align-content: center; justify-items: center; }
@@ -223,7 +229,7 @@ button[aria-pressed="true"] { background: var(--selected); border-color: var(--s
   .day-half button { font-size: .8rem; }
 }
 @media (max-width: 480px) {
-  .page-actions { gap: 6px; }
+  .page-actions { gap: 2px; }
   .eyebrow { text-align: left; font-size: .65rem; letter-spacing: .08em; line-height: 18px; }
   .wide-eyebrow { display: none; }
   .short-eyebrow { display: inline; }
@@ -233,7 +239,8 @@ button[aria-pressed="true"] { background: var(--selected); border-color: var(--s
 }
 @media (max-width: 760px) and (orientation: portrait) {
   main { max-width: 480px; padding: calc(68px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
-  .page-actions { top: calc(8px + env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); gap: clamp(2px, 1vw, 8px); }
+  .page-actions { top: calc(8px + env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); gap: clamp(0px, .5vw, 4px); max-width: calc(100vw - 24px); }
+  .page-actions .icon-button { width: clamp(40px, 11vw, 48px); }
   .icon-button { width: clamp(44px, 12vw, 48px); min-height: 48px; }
   header, .quiz header { margin: 0 0 16px; }
   .eyebrow { display: none; }
@@ -304,5 +311,5 @@ button[aria-pressed="true"] { background: var(--selected); border-color: var(--s
   .more-controls-panel .hand-selection { margin-top: 16px; }
 }
 @media (max-width: 320px) and (orientation: portrait) {
-  .page-actions { gap: 4px; }
+  .page-actions { gap: 0; }
 }

@@ -44,6 +44,9 @@ jobs:
         run: bunx playwright install --with-deps chromium
       - name: Run ${{ matrix.command }}
         run: bun run ${{ matrix.command }}
+      - name: Run production PWA checks
+        if: matrix.command == 'test:e2e'
+        run: bun run test:pwa --project chromium
       - name: Upload browser test failures
         if: failure() && matrix.command == 'test:e2e'
         uses: actions/upload-artifact@v4
