@@ -49,7 +49,7 @@ jobs:
         run: bun run test:pwa --project chromium
       - name: Upload browser test failures
         if: failure() && matrix.command == 'test:e2e'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-results
           path: test-results
