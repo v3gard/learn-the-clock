@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 
 const card = (page: Page) => page.getByRole('dialog', { name: 'Try it yourself' })
-const progress = (page: Page, step: number) => expect(card(page).getByText(`Step ${step} of 9`, { exact: true })).toBeVisible()
+const progress = (page: Page, step: number) => expect(card(page).getByText(`Step ${step} of 11`, { exact: true })).toBeVisible()
 
 async function acceptWelcome(page: Page) {
   await expect(page.getByRole('dialog', { name: 'Welcome!', exact: true })).toBeVisible()
@@ -65,14 +65,30 @@ for (const phone of [false, true]) {
       await page.locator(`[data-tutorial-target="${action}"]`).click()
       await progress(page, index + 4)
     }
-    await page.locator('[data-tutorial-target="navigate"]').click()
+    const seconds = page.getByRole('button', { name: 'Second hand', exact: true })
+    await expect(seconds).toHaveAttribute('aria-pressed', 'false')
+    await seconds.click()
+    await expect(seconds).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.locator('.freestyle .hand.second')).toHaveCount(1)
+    await page.waitForTimeout(750)
+    await progress(page, 7)
+    await seconds.click()
+    await expect(seconds).toHaveAttribute('aria-pressed', 'false')
     await progress(page, 8)
+    await page.getByRole('button', { name: 'Pause clock', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'Resume clock', exact: true })).toBeVisible()
+    await page.waitForTimeout(750)
+    await progress(page, 8)
+    await page.getByRole('button', { name: 'Resume clock', exact: true }).click()
+    await progress(page, 9)
+    await page.locator('[data-tutorial-target="navigate"]').click()
+    await progress(page, 10)
     for (const mode of ['Digital', 'Analog']) {
       await page.getByRole('button', { name: mode, exact: true }).click()
-      await progress(page, 8)
+      await progress(page, 10)
     }
     await page.getByRole('button', { name: 'Both', exact: true }).click()
-    await progress(page, 9)
+    await progress(page, 11)
     await page.getByRole('button', { name: 'Analog', exact: true }).click()
     await page.getByRole('button', { name: 'Start quiz', exact: true }).click()
     await expect(card(page)).toHaveCount(0)
@@ -102,10 +118,32 @@ test('temporary close reappears after reload; opt-out persists and help replays'
   await progress(page, 1)
 })
 
+test('guided drag steps temporarily reveal hidden hands and restore visibility afterward', async ({ page }) => {
+  await page.goto('./')
+  await page.getByRole('button', { name: 'No, thanks', exact: true }).click()
+  await page.getByRole('button', { name: 'Hour hand', exact: true }).click()
+  await page.getByRole('button', { name: 'Minute hand', exact: true }).click()
+  const hands = page.locator('.freestyle .clock-face')
+  await page.getByRole('button', { name: 'Show tutorial', exact: true }).click()
+  await acceptWelcome(page)
+  await progress(page, 1)
+  await expect(hands.locator('.hand.hour')).toHaveCount(1)
+  await expect(hands.locator('.hand.minute')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Skip step', exact: true }).click()
+  await progress(page, 2)
+  await expect(hands.locator('.hand.hour')).toHaveCount(0)
+  await expect(hands.locator('.hand.minute')).toHaveCount(1)
+  await page.getByRole('button', { name: 'Skip tutorial', exact: true }).click()
+  await expect(hands.locator('.hand.hour')).toHaveCount(0)
+  await expect(hands.locator('.hand.minute')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Hour hand', exact: true })).toHaveAttribute('aria-pressed', 'false')
+  await expect(page.getByRole('button', { name: 'Minute hand', exact: true })).toHaveAttribute('aria-pressed', 'false')
+})
+
 test('skipping every step never starts a quiz and still persists completion', async ({ page }) => {
   await page.goto('./')
   await acceptWelcome(page)
-  for (let step = 1; step <= 9; step++) {
+  for (let step = 1; step <= 11; step++) {
     await progress(page, step)
     await page.getByRole('button', { name: 'Skip step', exact: true }).click()
   }
@@ -143,7 +181,7 @@ test('phone spotlight keeps targets and keyboard-accessible skips usable', async
   await page.setViewportSize({ width: 360, height: 740 })
   await page.goto('./')
   await acceptWelcome(page)
-  for (let step = 1; step <= 9; step++) {
+  for (let step = 1; step <= 11; step++) {
     await progress(page, step)
     await expect.poll(() => page.locator('.tutorial-card').evaluate(panel => {
       const bounds = panel.getBoundingClientRect()
@@ -213,7 +251,7 @@ test('Norwegian laptop actions stay visible before and after scrolling the instr
     }
   }
   await page.getByRole('button', { name: 'Hopp over trinn', exact: true }).click()
-  await expect(page.getByText('Trinn 2 av 9', { exact: true })).toBeVisible()
+  await expect(page.getByText('Trinn 2 av 11', { exact: true })).toBeVisible()
 })
 
 test('blocked storage does not prevent session dismissal and replay', async ({ page }) => {

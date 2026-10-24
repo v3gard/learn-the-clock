@@ -176,7 +176,7 @@ export function Quiz({ visible, language, ref, onTutorialAction }: {
           {state.settings.mode !== 'digital' && <section aria-label={text.analogTitle}>
             <h2>{text.analogTitle} <span className="badge">{text.analogBadge}</span></h2>
             <AnalogClock time={question.time} dialLabel={text.dialLabel} className="clock-face"
-              role="img" aria-label={`${text.analogTitle}, ${formatTime(question.time).hours}:${formatTime(question.time).minutes}. ${labels.readOnly}`} />
+              role="img" aria-label={`${text.analogTitle}, ${formatTime(question.time).hours}:${formatTime(question.time).minutes}:00. ${labels.readOnly}`} />
           </section>}
         </div>
         <div className="compact-answer">

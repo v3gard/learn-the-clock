@@ -94,14 +94,16 @@ h2 { display: flex; align-items: center; justify-content: center; gap: 12px; fon
 .badge { font-size: .75rem; font-weight: 500; border: 1px solid var(--badge-border); padding: 4px 9px; border-radius: 20px; color: var(--muted); }
 .digital-frame { padding: 19px; border-radius: 24px; background: #393d39; box-shadow: 0 7px 0 #252c28, 0 16px 24px #443a2318; }
 .digital-display { display: flex; align-items: center; justify-content: center; gap: 8px; background: #121e1a; border-radius: 12px; padding: 20px 12px 24px; box-shadow: inset 0 3px 9px #0008; }
-.time-field { width: 43%; min-width: 0; }
+.time-field { flex: 1; min-width: 0; }
 .time-field label { display: block; text-transform: uppercase; font-size: .7rem; letter-spacing: .15em; margin-bottom: 14px; color: #d7ded4; }
 .led-field { position: relative; aspect-ratio: 1.65; border-radius: 5px; }
-.led-field input { width: 100%; height: 100%; padding: 0; background: transparent; border: 0; text-align: center; color: transparent; caret-color: transparent; font: 600 clamp(2.4rem, 6vw, 4.8rem)/1 ui-monospace, monospace; border-radius: 5px; }
+.led-field input { width: 100%; height: 100%; padding: 0; background: transparent; border: 0; text-align: center; color: transparent; caret-color: transparent; font: 600 clamp(1.2rem, 4vw, 3rem)/1 ui-monospace, monospace; border-radius: 5px; }
 .led-field:focus-within input, .led-field.editing input { color: var(--led); caret-color: var(--led); }
 .led-field:focus-within .led-digits, .led-field.editing .led-digits { visibility: hidden; }
 .hours, .hour { --hand: var(--hour); --led: #ffa988; }
 .minutes, .minute { --hand: var(--minute); --led: #70e2c6; }
+.seconds, .second { --hand: var(--second); --led: #80b4ff; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .led-digits { position: absolute; inset: 0; display: flex; gap: 12%; padding: 0 6%; pointer-events: none; }
 .led-digit { position: relative; flex: 1; }
 .segment { position: absolute; background: var(--led); opacity: .055; border-radius: 3px; }
@@ -111,7 +113,7 @@ h2 { display: flex; align-items: center; justify-content: center; gap: 12px; fon
 .segment.b, .segment.c, .segment.e, .segment.f { width: 13%; height: 41%; clip-path: polygon(50% 0, 100% 12%, 100% 88%, 50% 100%, 0 88%, 0 12%); }
 .segment.b { top: 6%; right: 0; }.segment.c { bottom: 6%; right: 0; }
 .segment.f { top: 6%; left: 0; }.segment.e { bottom: 6%; left: 0; }
-.colon { color: #b3c2b6; font: 3.5rem ui-monospace, monospace; padding-top: 20px; }
+.colon { color: #b3c2b6; font: clamp(1.5rem, 4vw, 2.5rem) ui-monospace, monospace; padding-top: 20px; }
 .adjustments { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 30px; }
 .adjustment > span { display: block; color: var(--hand); font-weight: 650; margin-bottom: 9px; }
 .adjustment > div { display: flex; gap: 10px; }
@@ -137,10 +139,11 @@ button[aria-pressed="true"] { background: var(--selected); border-color: var(--s
 .dial-label { font-size: 8px; letter-spacing: 2px; fill: var(--dial-label); }
 .hand { stroke: var(--hand); stroke-width: 9; stroke-linecap: round; }
 .hand.minute { stroke-width: 7; }
+.hand.second { stroke-width: 3; }
 .hand-halo { stroke: #ddc67d; stroke-width: 20; stroke-linecap: round; opacity: .6; }
 .pin { fill: var(--pin); }.pin-center { fill: var(--pin-center); }
 .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--hand); margin-right: 8px; }
-.hand-selection button { color: var(--hand); }
+.hand-visibility button { color: var(--hand); }
 .quiz-compact h1 { font-size: clamp(1.8rem, 3vw, 2.4rem); }
 .quiz-compact header .eyebrow { display: none; }
 .quiz-compact .quiz-progress { font-size: .9rem; gap: 18px; }
@@ -214,7 +217,7 @@ button[aria-pressed="true"] { background: var(--selected); border-color: var(--s
   header { margin-bottom: 28px; }
   .intro { font-size: 1rem; }
   .clocks { grid-template-columns: 1fr; gap: 40px; }
-  .led-field input { font-size: clamp(2.7rem, 12vw, 4.8rem); }
+  .led-field input { font-size: clamp(1.2rem, 6vw, 3rem); }
 }
 @media (max-width: 360px) {
   main { padding-inline: 12px; }
@@ -245,8 +248,8 @@ button[aria-pressed="true"] { background: var(--selected); border-color: var(--s
   .digital-frame { max-width: 300px; margin-inline: auto; padding: 12px; border-radius: 18px; }
   .digital-display { padding: 12px 8px; }
   .time-field label { margin-bottom: 8px; }
-  .led-field input { font-size: clamp(2rem, 10vw, 3rem); }
-  .colon { padding-top: 12px; font-size: 2.6rem; }
+  .led-field input { font-size: clamp(1.2rem, 6vw, 1.8rem); }
+  .colon { padding-top: 12px; font-size: 1.5rem; }
   .adjustments { margin-top: 12px; gap: 12px; }
   .adjustment > span { margin-bottom: 4px; }
   .adjustment button { min-height: 48px; font-size: 1.6rem; }
@@ -291,6 +294,7 @@ button[aria-pressed="true"] { background: var(--selected); border-color: var(--s
   .quiz-dialog .quiz-buttons { grid-template-columns: minmax(0, 1fr); }
   .freestyle header { margin-bottom: 12px; }
   .freestyle header .intro, .freestyle .inline-controls { display: none; }
+  .freestyle .inline-controls.tutorial-hand-controls { display: block; }
   .freestyle .spoken-time { font-size: clamp(1rem, 4.5vw, 1.25rem); }
   .freestyle .clocks { gap: 12px; }
   .freestyle .adjustments { margin-top: 8px; }
@@ -301,8 +305,11 @@ button[aria-pressed="true"] { background: var(--selected); border-color: var(--s
   .more-controls summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
   .more-controls-panel { position: absolute; bottom: calc(100% + 8px); left: 0; right: 0; z-index: 5; padding: 16px; max-height: calc(100svh - 140px); overflow: auto; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: 0 8px 24px #0002; }
   .more-controls-panel .intro { margin-bottom: 16px; }
-  .more-controls-panel .hand-selection { margin-top: 16px; }
+  .more-controls-panel .hand-visibility { margin-top: 16px; }
 }
 @media (max-width: 320px) and (orientation: portrait) {
   .page-actions { gap: 4px; }
+}
+@media (max-width: 359px) and (orientation: portrait) {
+  .page-actions:has(.clock-playback) { gap: 0; right: max(6px, env(safe-area-inset-right)); }
 }

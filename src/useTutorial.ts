@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { usePreference } from './preferences'
 import type { QuizMode } from './quizModel'
 
-export const tutorialActions = ['hour', 'minute', 'hour-plus', 'hour-minus', 'minute-plus', 'minute-minus', 'navigate', 'modes', 'start'] as const
+export const tutorialActions = ['hour', 'minute', 'hour-plus', 'hour-minus', 'minute-plus', 'minute-minus', 'second-toggle', 'playback', 'navigate', 'modes', 'start'] as const
 export type TutorialAction = typeof tutorialActions[number] | 'digital' | 'analog' | 'both'
 
 export function useTutorial() {
@@ -12,11 +12,13 @@ export function useTutorial() {
   const [success, setSuccess] = useState(false)
   const [modes, setModes] = useState<QuizMode[]>([])
   const [notice, setNotice] = useState(false)
+  const [toggleCount, setToggleCount] = useState(0)
 
   const dismiss = useCallback(() => {
     setStep(null)
     setWelcoming(false)
     setSuccess(false)
+    setToggleCount(0)
   }, [])
 
   const finish = useCallback(() => {
@@ -30,6 +32,7 @@ export function useTutorial() {
     else {
       setStep(current => current === null ? null : current + 1)
       setSuccess(false)
+      setToggleCount(0)
     }
   }, [step, finish])
 
@@ -47,12 +50,16 @@ export function useTutorial() {
 
   function complete(action: TutorialAction) {
     if (step === null || success) return
-    if (step === 7 && (action === 'digital' || action === 'analog' || action === 'both')) {
+    if (tutorialActions[step] === 'modes' && (action === 'digital' || action === 'analog' || action === 'both')) {
       const visited = [...new Set([...modes, action])]
       setModes(visited)
       if (visited.length === 3) setSuccess(true)
     } else if (tutorialActions[step] === action) {
-      if (action === 'start') finish()
+      if (action === 'second-toggle' || action === 'playback') {
+        const count = toggleCount + 1
+        setToggleCount(count)
+        if (count === 2) setSuccess(true)
+      } else if (action === 'start') finish()
       else setSuccess(true)
     }
   }
@@ -62,6 +69,7 @@ export function useTutorial() {
     setModes([])
     setSuccess(false)
     setNotice(false)
+    setToggleCount(0)
     setStep(0)
   }
 

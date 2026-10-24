@@ -5,7 +5,7 @@ import {
 } from '../src/clock'
 import type { ClockState, Hand } from '../src/clock'
 
-const initial: ClockState = { time: 900, draft: null, error: null }
+const initial: ClockState = { time: 900, seconds: 0, draft: null, error: null }
 const pointAt = (angle: number, radius = 90) => ({
   x: 200 + Math.sin(angle * Math.PI / 180) * radius,
   y: 200 - Math.cos(angle * Math.PI / 180) * radius,
@@ -136,7 +136,7 @@ describe('English spoken time', () => {
     expect(invalid.error).toBe('minutes')
     expect(formatSpokenTime(invalid.time, 'en')).toBe('The time is twenty-five to four')
     expect(formatSpokenTime(invalid.time, 'nb')).toBe('Klokka er fem over halv fire')
-    expect(invalid).toEqual({ time: 935, draft: { field: 'minutes', value: '60' }, error: 'minutes' })
+    expect(invalid).toEqual({ time: 935, seconds: 0, draft: { field: 'minutes', value: '60' }, error: 'minutes' })
   })
 })
 
@@ -146,7 +146,7 @@ describe('one committed time', () => {
       expect(clockReducer({ ...initial, time }, { type: 'add', delta }).time).toBe(expected)
     }
     expect(wrapTime(-2881)).toBe(1439)
-    expect(formatTime(0)).toEqual({ hours: '00', minutes: '00' })
+    expect(formatTime(0)).toEqual({ hours: '00', minutes: '00', seconds: '00' })
   })
   test('half selector preserves minutes and is idempotent', () => {
     expect(setHalf(215, 1)).toBe(935)
@@ -157,8 +157,8 @@ describe('one committed time', () => {
   test('valid entries commit just one field and restore leading zeroes', () => {
     const draft = clockReducer({ ...initial, time: 935 }, { type: 'edit', field: 'hours', value: '2' })
     const committed = clockReducer(draft, { type: 'commit' })
-    expect(committed).toEqual({ time: 155, draft: null, error: null })
-    expect(formatTime(committed.time)).toEqual({ hours: '02', minutes: '35' })
+    expect(committed).toEqual({ time: 155, seconds: 0, draft: null, error: null })
+    expect(formatTime(committed.time)).toEqual({ hours: '02', minutes: '35', seconds: '00' })
     expect(clockReducer(clockReducer(committed, { type: 'edit', field: 'minutes', value: '7' }), { type: 'commit' }).time).toBe(127)
   })
   test('invalid or empty drafts never clamp or change shared time', () => {
@@ -170,9 +170,54 @@ describe('one committed time', () => {
         expect(result.time).toBe(900)
         expect(result.error).toBeTruthy()
         expect(result.draft?.value).toBe(value)
-        expect(clockReducer(result, { type: 'add', delta: 1 })).toEqual({ time: 901, draft: null, error: null })
+        expect(clockReducer(result, { type: 'add', delta: 1 })).toEqual({ time: 901, seconds: 0, draft: null, error: null })
       }
     }
+  })
+
+  describe('seconds', () => {
+    test('ticks carry through midnight and account for delayed updates', () => {
+      const state = { ...initial, time: 1439, seconds: 59 }
+      expect(clockReducer(state, { type: 'tick', seconds: 1 })).toEqual({ ...initial, time: 0 })
+      expect(clockReducer(state, { type: 'tick', seconds: 122 })).toEqual({ ...initial, time: 2, seconds: 1 })
+      const draft = clockReducer(state, { type: 'edit', field: 'seconds', value: '12' })
+      expect(clockReducer(draft, { type: 'tick', seconds: 10 })).toEqual(draft)
+    })
+
+    test('edits seconds exactly, rejects invalid drafts, and resets on minute/hour edits', () => {
+      const state = { ...initial, seconds: 42 }
+      const edit = (field: 'hours' | 'minutes' | 'seconds', value: string) =>
+        clockReducer(clockReducer(state, { type: 'edit', field, value }), { type: 'commit' })
+      expect(edit('seconds', '7')).toEqual({ ...state, seconds: 7 })
+      expect(edit('seconds', '60')).toMatchObject({ time: state.time, seconds: 42, error: 'seconds' })
+      expect(edit('hours', '4')).toEqual({ ...initial, time: 240 })
+      expect(edit('minutes', '5')).toEqual({ ...initial, time: 905 })
+      expect(clockReducer(state, { type: 'discard' })).toEqual(state)
+      expect(formatTime(197, 24)).toEqual({ hours: '03', minutes: '17', seconds: '24' })
+    })
+
+    test('describes nonzero seconds precisely in both languages', () => {
+      expect(formatSpokenTime(197, 'en', 24)).toBe('The time is 3 hours, 17 minutes and 24 seconds')
+      expect(formatSpokenTime(61, 'nb', 1)).toBe('Klokka er 1 time, 1 minutt og 1 sekund')
+      expect(formatSpokenTime(180, 'en', 0)).toBe("The time is three o'clock")
+      for (const seconds of [-1, 60, 1.5, NaN, Infinity]) {
+        expect(() => formatSpokenTime(0, 'en', seconds)).toThrow(RangeError)
+      }
+    })
+
+    test('second-hand dragging snaps, carries, borrows, and supports overlap selection', () => {
+      expect(moveDrag(createDrag(1439, 'second', -6, 59), 0)).toMatchObject({ time: 0, seconds: 0 })
+      expect(moveDrag(createDrag(0, 'second', 0), -6)).toMatchObject({ time: 1439, seconds: 59 })
+      expect(moveDrag(createDrag(180, 'second', 0), 2)).toMatchObject({ time: 180, seconds: 0 })
+      expect(moveDrag(createDrag(180, 'second', 0), 4)).toMatchObject({ time: 180, seconds: 1 })
+      expect(handAngle(0, 'second', 24)).toBe(144)
+      expect(handAngle(0, 'minute', 30)).toBe(3)
+      expect(hitHand(pointAt(0), 0, 'second')).toBe('second')
+      expect(hitHand(pointAt(90, 160), 0, null, 18, 15)).toBe('second')
+      let result = moveDrag(createDrag(0, 'second', 0), 90)
+      for (let step = 2; step <= 8; step++) result = moveDrag(result.drag, step * 90 % 360)
+      expect(result).toMatchObject({ time: 2, seconds: 0 })
+    })
   })
   test('Escape and competing controls discard even valid unfinished drafts', () => {
     const draft = clockReducer(initial, { type: 'edit', field: 'hours', value: '9' })
@@ -186,6 +231,14 @@ describe('one committed time', () => {
 })
 
 describe('analog interaction', () => {
+  test('hidden hands never intercept drags, including preferred overlapping hands', () => {
+    const visible = { hour: true, minute: false, second: false }
+    expect(hitHand(pointAt(0), 0, 'minute', 18, 0, visible)).toBe('hour')
+    expect(hitHand(pointAt(0), 0, null, 18, 0, { ...visible, hour: false })).toBeNull()
+    expect(hitHand(pointAt(0), 0, 'hour', 18, 0, { hour: false, minute: false, second: true })).toBe('second')
+    expect(hitHand(pointAt(90), 900, null, 18, 30, { hour: false, minute: true, second: true })).toBeNull()
+  })
+
   test('hour position continuously reflects minutes', () => {
     expect(handAngle(930, 'hour')).toBe(105)
     expect(handAngle(930, 'minute')).toBe(180)
