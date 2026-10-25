@@ -24,6 +24,8 @@
   --dial-label: #8b816c;
   --pin: #454b40;
   --pin-center: #e6dac0;
+  --day-sky: var(--pin-center);
+  --night-sky: var(--pin);
   --focus: #2861b5;
   --selection: #c4d9ed;
   font-family: 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
@@ -64,6 +66,8 @@
   --dial-label: #b9c4ad;
   --pin: #b6c2b0;
   --pin-center: #36453b;
+  --day-sky: #647c68;
+  --night-sky: var(--background);
   --focus: #8dbdff;
   --selection: #355577;
   color-scheme: dark;

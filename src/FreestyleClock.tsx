@@ -156,7 +156,7 @@ export function FreestyleClock({ visible, language, running, onRunningChange, re
       </section>
       <section className="analog-section" aria-labelledby="analog-title">
         <h2 id="analog-title">{text.analogTitle} <span className="badge">{text.analogBadge}</span></h2>
-        <AnalogClock data-tutorial-target="hands" faceRef={face} time={state.time} seconds={state.seconds} visibleHands={visibleHands} highlighted={tutorialHand ?? activeHand} dialLabel={text.dialLabel}
+        <AnalogClock showDayNight data-tutorial-target="hands" faceRef={face} time={state.time} seconds={state.seconds} visibleHands={visibleHands} highlighted={tutorialHand ?? activeHand} dialLabel={text.dialLabel}
           className={`clock-face ${activeHand ? 'dragging' : ''}`}
           role="group" aria-label={`${text.analogTitle}, ${hours}:${minutes}${visibleHands.second ? `:${seconds}` : ''}. ${text.analogDescription}`}
           {...pointerHandlers} />
