@@ -143,6 +143,12 @@ button[aria-pressed="true"] { background: var(--selected); border-color: var(--s
 .minute-number { font-size: 11px; fill: var(--minute-number); }
 .clock-face text { text-anchor: middle; dominant-baseline: central; }
 .dial-label { font-size: 8px; letter-spacing: 2px; fill: var(--dial-label); }
+.day-night-aperture { pointer-events: none; }
+.day-sky { fill: var(--day-sky); }
+.night-sky { fill: var(--night-sky); }
+.day-night-emoji { font-size: 28px; }
+.aperture-bevel { fill: none; stroke: var(--surface); stroke-width: 3; }
+.aperture-border { fill: none; stroke: var(--rim-border); stroke-width: 2; }
 .hand { stroke: var(--hand); stroke-width: 9; stroke-linecap: round; }
 .hand.minute { stroke-width: 7; }
 .hand.second { stroke-width: 3; }

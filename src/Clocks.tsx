@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import type { ReactNode, Ref, SVGProps } from 'react'
 import { allHandsVisible, formatTime, handAngle } from './clock'
 import type { Hand, HandVisibility } from './clock'
@@ -40,20 +41,52 @@ function ReadOnlyTimeField({ field, value }: { field: 'hours' | 'minutes' | 'sec
   return <div className={`time-field ${field}`}><div className="led-field"><LedDigits value={value} /></div></div>
 }
 
-export function AnalogClock({ time, seconds = 0, visibleHands = allHandsVisible, highlighted, dialLabel, faceRef, ...props }: {
-  time: number; seconds?: number; visibleHands?: HandVisibility; highlighted?: Hand | null; dialLabel: string; faceRef?: Ref<SVGSVGElement>
+export function AnalogClock({ time, seconds = 0, visibleHands = allHandsVisible, highlighted, dialLabel, faceRef, showDayNight = false, ...props }: {
+  time: number; seconds?: number; visibleHands?: HandVisibility; highlighted?: Hand | null; dialLabel: string; faceRef?: Ref<SVGSVGElement>; showDayNight?: boolean
 } & SVGProps<SVGSVGElement>) {
   return <svg ref={faceRef} viewBox="0 0 400 400" {...props}>
     <circle className="rim" cx="200" cy="200" r="194" />
     <circle className="dial" cx="200" cy="200" r="183" />
     <ClockTicks />
     <ClockNumbers />
+    {showDayNight && <DayNightAperture time={time} seconds={seconds} />}
     <text className="dial-label" x="200" y="264">{dialLabel}</text>
     {(['hour', 'minute', 'second'] as const).filter(hand => visibleHands[hand]).map(hand =>
       <ClockHand key={hand} hand={hand} time={time} seconds={seconds} highlighted={highlighted === hand} />)}
     <circle className="pin" cx="200" cy="200" r="11" />
     <circle className="pin-center" cx="200" cy="200" r="4" />
   </svg>
+}
+
+function DayNightAperture({ time, seconds }: { time: number; seconds: number }) {
+  const clipId = useId()
+  const shadowId = useId()
+  const angle = (time + seconds / 60) / 4 - 180
+  const aperture = 'M 134 174 A 66 66 0 0 1 266 174 Z'
+
+  return <g className="day-night-aperture" aria-hidden="true">
+    <defs>
+      <clipPath id={clipId}><path d={aperture} /></clipPath>
+      <filter id={shadowId} x="-10%" y="-20%" width="120%" height="140%" colorInterpolationFilters="sRGB">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur" />
+        <feOffset in="blur" dx="1.5" dy="3" result="offset" />
+        <feComposite in="SourceAlpha" in2="offset" operator="out" result="inner-edge" />
+        <feFlood floodColor="#000" floodOpacity=".45" />
+        <feComposite in2="inner-edge" operator="in" />
+      </filter>
+    </defs>
+    <path className="aperture-bevel" d={aperture} transform="translate(0 1.5)" />
+    <g clipPath={`url(#${clipId})`}>
+      <g className="day-night-disc" transform={`rotate(${angle} 200 174)`}>
+        <circle className="night-sky" cx="200" cy="174" r="66" />
+        <path className="day-sky" d={aperture} />
+        <text className="day-night-emoji sun" x="200" y="137" transform={`rotate(${-angle} 200 137)`}>☀️</text>
+        <text className="day-night-emoji moon" x="200" y="211" transform={`rotate(${-angle} 200 211)`}>🌙</text>
+      </g>
+      <path d={aperture} filter={`url(#${shadowId})`} />
+    </g>
+    <path className="aperture-border" d={aperture} />
+  </g>
 }
 
 function ClockTicks() {
