@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Dispatch, PointerEvent } from 'react'
-import { createDrag, hitHand, moveDrag, pointerAngle, svgPoint } from './clock'
-import type { ClockAction, Drag, Hand } from './clock'
+import { allHandsVisible, createDrag, hitHand, moveDrag, pointerAngle, svgPoint } from './clock'
+import type { ClockAction, Drag, Hand, HandVisibility } from './clock'
 
-export function useClockDrag(time: number, dispatch: Dispatch<ClockAction>, onDragged?: (hand: Hand) => void, preferredHand?: Hand) {
-  const [selectedHand, setSelectedHand] = useState<Hand | null>(null)
+export function useClockDrag(time: number, dispatch: Dispatch<ClockAction>, onDragged?: (hand: Hand) => void, preferredHand?: Hand, seconds = 0, visibleHands: HandVisibility = allHandsVisible) {
   const [activeHand, setActiveHand] = useState<Hand | null>(null)
   const drag = useRef<(Drag & { pointerId: number; initialTime: number; latestTime: number }) | null>(null)
   const face = useRef<SVGSVGElement>(null)
@@ -40,13 +39,13 @@ export function useClockDrag(time: number, dispatch: Dispatch<ClockAction>, onDr
     const position = eventPosition(event)
     const bounds = event.currentTarget.getBoundingClientRect()
     const tolerance = Math.max(18, 22 * 400 / Math.min(bounds.width, bounds.height))
-    const hand = hitHand(position, time, preferredHand ?? selectedHand, tolerance)
+    const hand = hitHand(position, time, preferredHand ?? null, tolerance, seconds, visibleHands)
     const angle = pointerAngle(position)
     if (!hand || angle === null) return
 
     event.preventDefault()
     event.currentTarget.setPointerCapture(event.pointerId)
-    drag.current = { ...createDrag(time, hand, angle), pointerId: event.pointerId, initialTime: time, latestTime: time }
+    drag.current = { ...createDrag(time, hand, angle, seconds), pointerId: event.pointerId, initialTime: time + seconds / 60, latestTime: time + seconds / 60 }
     dispatch({ type: 'discard' })
     setActiveHand(hand)
   }
@@ -54,8 +53,8 @@ export function useClockDrag(time: number, dispatch: Dispatch<ClockAction>, onDr
   function updateDrag(event: PointerEvent<SVGSVGElement>) {
     if (!drag.current || drag.current.pointerId !== event.pointerId) return
     const result = moveDrag(drag.current, pointerAngle(eventPosition(event)))
-    drag.current = { ...drag.current, ...result.drag, latestTime: result.time }
-    dispatch({ type: 'set', time: result.time })
+    drag.current = { ...drag.current, ...result.drag, latestTime: result.time + result.seconds / 60 }
+    dispatch({ type: 'set', time: result.time, seconds: result.seconds })
   }
 
   function finishPointerDrag(event: PointerEvent<SVGSVGElement>) {
@@ -73,8 +72,6 @@ export function useClockDrag(time: number, dispatch: Dispatch<ClockAction>, onDr
   return {
     face,
     activeHand,
-    highlightedHand: activeHand ?? selectedHand,
-    selectHand: setSelectedHand,
     changeTime,
     endDrag,
     pointerHandlers: {

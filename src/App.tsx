@@ -12,7 +12,7 @@ import { Support } from './Support'
 import { Pwa } from './Pwa'
 import { usePreference } from './preferences'
 import { Tutorial } from './Tutorial'
-import { useTutorial } from './useTutorial'
+import { tutorialActions, useTutorial } from './useTutorial'
 import { tutorialText } from './tutorialText'
 import './App.css'
 
@@ -26,8 +26,10 @@ function App() {
   const [language, setLanguage] = usePreference('language')
   const tutorial = useTutorial()
   const { step, success, dismiss } = tutorial
+  const tutorialAction = step === null ? null : tutorialActions[step]
   const [quizVisible, setQuizVisible] = useState(() => tutorial.step === null && location.hash === '#/quiz')
   const [confirmTutorial, setConfirmTutorial] = useState(false)
+  const [clockRunning, setClockRunning] = useState(true)
   const freestyleClock = useRef<FreestyleClockHandle>(null)
   const quiz = useRef<QuizHandle>(null)
   const text = translations[language]
@@ -39,21 +41,20 @@ function App() {
 
   useEffect(() => {
     freestyleClock.current?.endDrag()
-    if (tutorial.step === null) return
-    if (tutorial.step === 0) window.location.assign('#/')
-    if (tutorial.step >= 7) window.location.assign('#/quiz')
-  }, [tutorial.step])
+    if (tutorialAction === 'hour') window.location.assign('#/')
+    if (tutorialAction === 'modes' || tutorialAction === 'start') window.location.assign('#/quiz')
+  }, [tutorialAction])
 
   useEffect(() => {
     function navigate() {
       const nextQuizVisible = location.hash === '#/quiz'
       setQuizVisible(nextQuizVisible)
-      const expectedQuiz = step !== null && (step >= 7 || (step === 6 && success))
+      const expectedQuiz = tutorialAction === 'modes' || tutorialAction === 'start' || (tutorialAction === 'navigate' && success)
       if (step !== null && nextQuizVisible !== expectedQuiz) dismiss()
     }
     window.addEventListener('hashchange', navigate)
     return () => window.removeEventListener('hashchange', navigate)
-  }, [step, success, dismiss])
+  }, [step, tutorialAction, success, dismiss])
 
   useEffect(() => {
     document.documentElement.lang = language
@@ -94,6 +95,19 @@ function App() {
   return <main>
     <div className="page-actions" role="group" aria-label={text.tools}>
       <NavigationButton language={language} quizVisible={quizVisible} onNavigate={navigate} />
+      {!quizVisible && <button type="button" className="icon-button clock-playback" data-time-control data-tutorial-target="playback"
+        aria-label={clockRunning ? text.pauseClock : text.resumeClock}
+        title={clockRunning ? text.pauseClock : text.resumeClock}
+        onClick={() => {
+          freestyleClock.current?.togglePlayback()
+          tutorial.complete('playback')
+        }}>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          {clockRunning
+            ? <><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></>
+            : <path d="M8 5v14l11-7z" />}
+        </svg>
+      </button>}
       <LanguageButton language={language} onToggle={() => setLanguage(current => current === 'nb' ? 'en' : 'nb')} />
       <DarkModeButton language={language} darkMode={darkMode} onToggle={() => setDarkMode(current => !current)} />
       <Personalization language={language} />
@@ -111,8 +125,9 @@ function App() {
       </button>
     </div>
     <Quiz ref={quiz} visible={quizVisible} language={language} onTutorialAction={tutorial.complete} />
-    <FreestyleClock ref={freestyleClock} visible={!quizVisible} language={language}
-      tutorialHand={tutorial.step === 0 ? 'hour' : tutorial.step === 1 ? 'minute' : undefined}
+    <FreestyleClock ref={freestyleClock} visible={!quizVisible} language={language} running={clockRunning} onRunningChange={setClockRunning}
+      tutorialHand={tutorialAction === 'hour' || tutorialAction === 'minute' ? tutorialAction : undefined}
+      tutorialSecondHand={tutorialAction === 'second-toggle'}
       onTutorialAction={tutorial.complete} />
     <Tutorial language={language} step={tutorial.step} success={tutorial.success} modes={tutorial.modes}
       welcoming={tutorial.welcoming} onStart={acceptTutorial}

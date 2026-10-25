@@ -190,7 +190,7 @@ export function Tutorial({ language, step, success, modes, confirming, welcoming
       </div>
       {!centered && <p className="tutorial-progress">{text.step} {step! + 1} {text.of} {tutorialActions.length}</p>}
       <p id="tutorial-instruction">{confirming ? text.confirmText : welcoming ? text.welcomeText : text.instructions[step!]}</p>
-      {!centered && step === 7 && <ul className="tutorial-modes">
+      {!centered && action === 'modes' && <ul className="tutorial-modes">
         {(['digital', 'analog', 'both'] as const).map(mode => <li key={mode}>
           <span aria-hidden="true">{modes.includes(mode) ? '✓ ' : '○ '}</span>
           {text.modeDescriptions[mode]} {modes.includes(mode) && <strong>({quizText[language][mode]}) ✓</strong>}
